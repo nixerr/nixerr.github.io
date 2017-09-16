@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>http://slashd.ga/2017/09/this-is-a-test/</loc>
+    <lastmod>2017-09-13T22:08:45+03:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://slashd.ga/2017/09/compile-with-clang-coverage/</loc>
+    <lastmod>2017-09-13T20:33:56+03:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://slashd.ga/blog/</loc>
+    <lastmod>2017-09-13T22:08:45+03:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://slashd.ga/categories/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://slashd.ga/tags/clang/</loc>
+    <lastmod>2017-09-13T20:33:56+03:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://slashd.ga/tags/coverage/</loc>
+    <lastmod>2017-09-13T22:08:45+03:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://slashd.ga/tags/llvm/</loc>
+    <lastmod>2017-09-13T22:08:45+03:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://slashd.ga/tags/</loc>
+    <lastmod>2017-09-13T20:33:56+03:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://slashd.ga/tags/test/</loc>
+    <lastmod>2017-09-13T22:08:45+03:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://slashd.ga/</loc>
+    <lastmod>2017-09-13T22:08:45+03:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+</urlset>

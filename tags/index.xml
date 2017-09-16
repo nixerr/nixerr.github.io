@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on slashd.ga</title>
+    <link>http://slashd.ga/tags/</link>
+    <description>Recent content in Tags on slashd.ga</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ru</language>
+    <copyright>Valentin Shilnenkov</copyright>
+    <lastBuildDate>Wed, 13 Sep 2017 20:33:56 +0300</lastBuildDate>
+    
+	<atom:link href="http://slashd.ga/tags/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Clang</title>
+      <link>http://slashd.ga/tags/clang/</link>
+      <pubDate>Wed, 13 Sep 2017 20:33:56 +0300</pubDate>
+      
+      <guid>http://slashd.ga/tags/clang/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Coverage</title>
+      <link>http://slashd.ga/tags/coverage/</link>
+      <pubDate>Wed, 13 Sep 2017 22:08:45 +0300</pubDate>
+      
+      <guid>http://slashd.ga/tags/coverage/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Llvm</title>
+      <link>http://slashd.ga/tags/llvm/</link>
+      <pubDate>Wed, 13 Sep 2017 22:08:45 +0300</pubDate>
+      
+      <guid>http://slashd.ga/tags/llvm/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Test</title>
+      <link>http://slashd.ga/tags/test/</link>
+      <pubDate>Wed, 13 Sep 2017 22:08:45 +0300</pubDate>
+      
+      <guid>http://slashd.ga/tags/test/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

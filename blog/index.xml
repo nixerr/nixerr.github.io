@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Blogs on slashd.ga</title>
+    <link>http://slashd.ga/blog/</link>
+    <description>Recent content in Blogs on slashd.ga</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ru</language>
+    <copyright>Valentin Shilnenkov</copyright>
+    <lastBuildDate>Wed, 13 Sep 2017 22:08:45 +0300</lastBuildDate>
+    
+	<atom:link href="http://slashd.ga/blog/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>This Is a Test</title>
+      <link>http://slashd.ga/2017/09/this-is-a-test/</link>
+      <pubDate>Wed, 13 Sep 2017 22:08:45 +0300</pubDate>
+      
+      <guid>http://slashd.ga/2017/09/this-is-a-test/</guid>
+      <description>Dillinger 
+Dillinger is a cloud-enabled, mobile-ready, offline-storage, AngularJS powered HTML5 Markdown editor.
+ Type some Markdown on the left See HTML in the right Magic  New Features!  Import a HTML file and watch it magically convert to Markdown Drag and drop images (requires your Dropbox account be linked)  You can also: - Import and save files from GitHub, Dropbox, Google Drive and One Drive - Drag and drop markdown and HTML files into Dillinger - Export documents as Markdown, HTML and PDF</description>
+    </item>
+    
+    <item>
+      <title>Compile With Clang Coverage</title>
+      <link>http://slashd.ga/2017/09/compile-with-clang-coverage/</link>
+      <pubDate>Wed, 13 Sep 2017 20:33:56 +0300</pubDate>
+      
+      <guid>http://slashd.ga/2017/09/compile-with-clang-coverage/</guid>
+      <description>Very good stuff set(AAA &amp;quot;-adigna948f3q4 ${AAA}&amp;quot;)  $ build-webkit --jsc-only  thats all</description>
+    </item>
+    
+  </channel>
+</rss>

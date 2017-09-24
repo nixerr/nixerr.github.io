@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="generator" content="Hugo 0.27.1" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="//fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/rainbow.min.css">
+<link rel="stylesheet" href="/css/normalize.css">
+<link rel="stylesheet" href="/css/skeleton.css">
+<link rel="stylesheet" href="/css/custom.css">
+<link rel="alternate" href="/index.xml" type="application/rss+xml" title="slashd.ga">
+<title>Code Coverage - slashd.ga</title>
+</head>
+<body>
+
+<div class="container">
+
+	<header role="banner">
+		<div class="header-logo">
+			<a href="/"><img src="/images/logo.png" width="60" height="60" alt="slashd.ga"></a>
+		</div>
+		
+	</header>
+
+
+	<main role="main">
+	<article itemscope itemtype="http://schema.org/BlogPosting"> 
+			<h1 class="entry-title" itemprop="headline">Code Coverage</h1>
+			<span class="entry-meta"><time itemprop="datePublished" datetime="2017-09-23">September 23, 2017</time></span>
+			
+
+<h1 id="введение">Введение</h1>
+
+<hr />
+
+<p>Code coverage, или покрытие кода, это мера, используемая при тестировании программного обеспечения. Она показывает процент, насколько исходный код программы был протестирован (wikipedia). Code coverage удобно использовать как вспомогательный инструмент, чтобы понять какой код в данном случае исполнятеся. Для примера можно привести различные JavaScript-движки: JSC, ChakraCore, V8. В этой статье будут показаны примеры сборки JSC и ChakraCore с опцией покрытия кода и получения статистики с использованием компилятора clang.</p>
+
+<h1 id="общие-вопросы">Общие вопросы</h1>
+
+<hr />
+
+<h2 id="сборка-проекта">Сборка проекта</h2>
+
+<p>Опции отвечающая за компиляцию проекта с покрытием кода:</p>
+
+<pre><code>-fprofile-instr-generate -fcoverage-mapping
+</code></pre>
+
+<p>Добавить их необходимо как во флаги компиляции, так и линковки. На выходе вы получите &ldquo;обычный&rdquo; исполняемый файл, как если бы не применялась опция покрытия кода.</p>
+
+<h2 id="получение-статистики">Получение статистики</h2>
+
+<p>В конце работы исполняемого файла будет генерироваться отчёт. По-умолчанию файл будет называться <code>default.profraw</code>. Тут важно предупредить, что файл должен завершиться нормально, никаких <code>SIGSEGV</code> и прочего, обычный <code>exit()</code>. Файл, в который будет записываться статистика, можно указать через переменную окружения <code>LLVM_PROFILE_FILE</code>.</p>
+
+<p>Для тестов будем использовать следующий кусок кода:</p>
+
+<pre><code class="language-js">let o = {};
+for (let i in {xx: 0}) {
+    o[i];
+}
+</code></pre>
+
+<p>Следующим шагом будет использование команды <code>llvm-profdata</code>:</p>
+
+<pre><code class="language-bash">llvm-profdata merge -sparse default.profraw -o default.profdata
+</code></pre>
+
+<p>Если у вас стоит <code>llvm</code> до версии <code>4.0</code>, то есть <code>3.8</code> или <code>3.9</code>, что часто встречается на <code>ubuntu 16.04.3</code>, то команда использует чуть другие параметры:</p>
+
+<pre><code class="language-bash">llvm-profdata merge -stats default.profraw -o default.profdata
+</code></pre>
+
+<p>После этого у вас должен получиться файл <code>default.profdata</code>. Его уже необходимо скормить на вход программе <code>llvm-cov</code> (в случае если у вас версия <code>4.0</code>):</p>
+
+<pre><code class="language-bash">llvm-cov show path_to_binary_or_lib \
+-Xdemangler=c++filt \             # Демандглер имён функций. Не доступна на 3.9 и ниже
+-instr-profile=default.profdata \ # Путь до файла с предыдущего шага.
+-format=html \                    # В каком формате получить отчёт.
+-output-dir=output_html           # В какаую директорию сгенерировать файлы отчёта.
+</code></pre>
+
+<p>После этого у вас в директории <code>output_html</code> должны находиться файлы отчёта о покрытии кода. Его удобно посмотреть с помощью браузера. Реализация функции покрытие кода с помощью clang активно развивается. Поэтому лучше всего использовать наиболее свежую версия clang/llvm из-за более удобных отчётов. Последняя доступная стабильная версия <code>5.0</code>.</p>
+
+<h1 id="примеры">Примеры</h1>
+
+<hr />
+
+<h2 id="javascriptcore">JavaScriptCore</h2>
+
+<p>Для сборки JSC под Linux используется <code>cmake</code> (конфиги *.cmake). Для сборки под macOS используется <code>xcodebuild</code> (конфиги *.xcconfig). Репозиторий кода использующийся при сборке <a href="https://github.com/WebKit/WebKit">https://github.com/WebKit/WebKit</a>. Если проекти не собирается и выскакивают какие-то ошибки, то можно глянуть билды которые собирались на <a href="https://webkit.org/nightly/archives/">https://webkit.org/nightly/archives/</a>, а через них уже выйти на последний удачный коммит.</p>
+
+<p>В <code>Source/cmake/WebKitCompilerFlags.cmake</code> определено несколько макросов. Полезный для нас будет <code>WEBKIT_PREPEND_GLOBAL_COMPILER_FLAGS</code>, который добовляет указанные нами флаги к <code>CFLAGS</code> и <code>CXXFLAGS</code>. Добавляем в <code>Source/cmake/WebKitCompilerFlags.cmake</code> в секцию с <code>if (COMPILER_IS_GCC_OR_CLANG)</code> следующий код:</p>
+
+<pre><code class="language-cmake">WEBKIT_PREPEND_GLOBAL_COMPILER_FLAGS(-O0 -g -fprofile-instr-generate -fcoverage-mapping)
+set(CMAKE_SHARED_LINKER_FLAGS &quot;-fprofile-instr-generate -fcoverage-mapping ${CMAKE_SHARED_LINKER_FLAGS}&quot;)
+</code></pre>
+
+<p>После этого запускаем сборку проекта:</p>
+
+<pre><code class="language-bash">test@ubnt16043x64:~/Desktop/WebKit$ export CC=clang-5.0
+test@ubnt16043x64:~/Desktop/WebKit$ export CXX=clang++-5.0
+test@ubnt16043x64:~/Desktop/WebKit$ Tools/Scripts/build-webkit --jsc-only
+</code></pre>
+
+<p>Собранный проект находится в директории <code>WebKitBuild/Release</code></p>
+
+<pre><code class="language-bash">test@ubnt16043x64:~/Desktop/WebKit$ llvm-profdata-5.0 merge -sparse default.profraw -o def.profdata
+test@ubnt16043x64:~/Desktop/WebKit$ llvm-cov-5.0 show WebKitBuild/Release/bin/jsc -Xdemangler=c++filt  -instr-profile=def.profdata -format=html -output-dir=output_dir2
+warning: 362 functions have mismatched data
+</code></pre>
+
+<p>После этого статистика в формате <code>html</code> будет доступна в директории <code>output_dir2</code>.</p>
+
+<p><img src="/static/code-coverage/cc_3.png" alt="Покрытие кода для WebKitBuild/Release/bin/jsc" /></p>
+
+<p>Если посмотреть более внимательно будет отсутствовать код JSC-движка. Для того, чтобы получить статистику по покрытию кода для JSC-движка необходимо указывать путь к библиотеке:</p>
+
+<pre><code class="language-bash">test@ubnt16043x64:~/Desktop/WebKit$ llvm-cov-5.0 show WebKitBuild/Release/lib/libJavaScriptCore.so.1.0.0 -Xdemangler=c++filt  -instr-profile=def.profdata -format=html -output-dir=output_dir
+</code></pre>
+
+<p><img src="/static/code-coverage/cc_1.png" alt="Покрытие кода для libJavaScriptCore.so.1.0.0 1" /></p>
+
+<p><img src="/static/code-coverage/cc_2.png" alt="Покрытие кода для libJavaScriptCore.so.1.0.0 2" /></p>
+
+<h2 id="chakracore">ChakraCore</h2>
+
+<p>Проект можно слить с <a href="https://github.com/Microsoft/ChakraCore">https://github.com/Microsoft/ChakraCore</a>. Для того, чтобы добавить в проект опции покрытия кода необходимо отредактировать <code>CMakeFile.txt</code> в корне проекта и добавить следующие строки:</p>
+
+<pre><code class="language-cmake">set(CMAKE_C_FLAGS &quot;-O0 -g -fprofile-instr-generate -fcoverage-mapping ${CMAKE_C_FLAGS}&quot;)
+set(CMAKE_CXX_FLAGS &quot;-O0 -g -fprofile-instr-generate -fcoverage-mapping  ${CMAKE_CXX_FLAGS}&quot;)
+set(CMAKE_EXE_LINKER_FLAGS &quot;-fprofile-instr-generate -fcoverage-mapping ${CMAKE_EXE_LINKER_FLAGS}&quot;)
+</code></pre>
+
+<p>Запуск сборки осуществляется следующим образом:</p>
+
+<pre><code class="language-bash">test@ubnt16043x64:~/Desktop/ChakraCore$ ./build.sh --cxx=/usr/bin/clang++-4.0 --cc=/usr/bin/clang-4.0 -n
+</code></pre>
+
+<p>Из-за того, что проект не собирался с помощью <code>clang</code> версии <code>5.0</code> пришлось использовать <code>4.0</code>.
+Для генерирования статистики можно использовать <code>llvm-cov</code> и <code>llvm-profdata</code> версии <code>5.0</code>:</p>
+
+<pre><code class="language-bash">test@ubnt16043x64:~/Desktop/ChakraCore$ out/Release/ch test.js
+test@ubnt16043x64:~/Desktop/ChakraCore$ llvm-profdata-5.0 merge -sparse default.profraw -o def.profdata
+test@ubnt16043x64:~/Desktop/ChakraCore$ llvm-cov-5.0 show out/Release/ch -Xdemangler=c++filt  -instr-profile=def.profdata -format=html -output-dir=output_dir
+warning: 37 functions have mismatched data
+test@ubnt16043x64:~/Desktop/ChakraCore$ llvm-cov-5.0 show out/Release/libChakraCore.so -Xdemangler=c++filt  -instr-profile=def.profdata -format=html -output-dir=output_dir2
+warning: 4 functions have mismatched data
+</code></pre>
+
+<p>Статистику для <code>ch</code> будет в директории <code>output_dir</code>. Для основного движка, или <code>libChakraCore.so</code>, в <code>output_dir2</code>.</p>
+
+	</article>
+	</main>
+
+
+	<footer role="contentinfo">
+		<div class="hr"></div>
+		<div class="footer-container">
+			<div class="copyright">Valentin Shilnenkov</div>
+			<div class="footer-link">
+				
+				  <a href="mailto:need.coffee@yandex.ru"><img class="icon" src="/images/email.svg"/ alt="email"></a>
+				
+				
+				
+				
+				  <a href="https://github.com/nixerr/" target="_blank"><img class="icon" src="/images/github.svg"/></a>
+				
+				
+			</div>
+		</div>
+	</footer>
+
+</div>
+
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/cmake.min.js" defer></script>
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/javascript.min.js" defer></script>
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js" defer></script>
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/cpp.min.js" defer></script>
+  
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+</html>
+

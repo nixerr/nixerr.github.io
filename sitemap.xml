@@ -3,6 +3,17 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>http://slashd.ga/2017/09/code-coverage/</loc>
+    <lastmod>2017-09-23T11:28:11+03:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://slashd.ga/blog/</loc>
+    <lastmod>2017-09-23T11:28:11+03:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>http://slashd.ga/categories/</loc>
     <priority>0</priority>
   </url>
@@ -14,6 +25,7 @@
   
   <url>
     <loc>http://slashd.ga/</loc>
+    <lastmod>2017-09-23T11:28:11+03:00</lastmod>
     <priority>0</priority>
   </url>
   

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Categories on slashd.ga</title>
-    <link>http://slashd.ga/categories/</link>
-    <description>Recent content in Categories on slashd.ga</description>
+    <title>Categories on blog.pwner.tk</title>
+    <link>http://blog.pwner.tk/categories/</link>
+    <description>Recent content in Categories on blog.pwner.tk</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ru</language>
     <copyright>Valentin Shilnenkov</copyright>
     
-	<atom:link href="http://slashd.ga/categories/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://blog.pwner.tk/categories/index.xml" rel="self" type="application/rss+xml" />
     
     
   </channel>

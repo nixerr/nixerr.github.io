@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Blogs on slashd.ga</title>
-    <link>http://slashd.ga/blog/</link>
-    <description>Recent content in Blogs on slashd.ga</description>
+    <title>Blogs on blog.pwner.tk</title>
+    <link>http://blog.pwner.tk/blog/</link>
+    <description>Recent content in Blogs on blog.pwner.tk</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ru</language>
     <copyright>Valentin Shilnenkov</copyright>
     <lastBuildDate>Wed, 14 Mar 2018 00:27:31 +0300</lastBuildDate>
     
-	<atom:link href="http://slashd.ga/blog/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://blog.pwner.tk/blog/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>IPhoneX 11.2.6 IOKit Inheritance</title>
-      <link>http://slashd.ga/2018/03/iphonex-11.2.6-iokit-inheritance/</link>
+      <link>http://blog.pwner.tk/2018/03/iphonex-11.2.6-iokit-inheritance/</link>
       <pubDate>Wed, 14 Mar 2018 00:27:31 +0300</pubDate>
       
-      <guid>http://slashd.ga/2018/03/iphonex-11.2.6-iokit-inheritance/</guid>
+      <guid>http://blog.pwner.tk/2018/03/iphonex-11.2.6-iokit-inheritance/</guid>
       <description>Наследование классов в IOKit Дендрограмма наследования классов для iPhoneX для версии iOS 11.2.6.</description>
     </item>
     
     <item>
       <title>Code Coverage</title>
-      <link>http://slashd.ga/2017/09/code-coverage/</link>
+      <link>http://blog.pwner.tk/2017/09/code-coverage/</link>
       <pubDate>Sat, 23 Sep 2017 11:28:11 +0300</pubDate>
       
-      <guid>http://slashd.ga/2017/09/code-coverage/</guid>
+      <guid>http://blog.pwner.tk/2017/09/code-coverage/</guid>
       <description>Введение Code coverage, или покрытие кода, это мера, используемая при тестировании программного обеспечения. Она показывает процент, насколько исходный код программы был протестирован (wikipedia). Code coverage удобно использовать как вспомогательный инструмент, чтобы понять какой код в данном случае исполнятеся. Для примера можно привести различные JavaScript-движки: JSC, ChakraCore, V8. В этой статье будут показаны примеры сборки JSC и ChakraCore с опцией покрытия кода и получения статистики с использованием компилятора clang.
 Общие вопросы Сборка проекта Опции отвечающая за компиляцию проекта с покрытием кода:</description>
     </item>

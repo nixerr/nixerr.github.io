@@ -18,8 +18,8 @@
       <pubDate>Sat, 22 Dec 2018 18:36:21 +0300</pubDate>
       
       <guid>http://slashd.ga/2018/12/generation-of-iokits-classes-hierarchy/</guid>
-      <description>Generation of IOKit&amp;rsquo;s classes hierarchy On the week i have got email with request how to generate the file iokit.csv. This file used by dendrogram.
-In the begin The article contains steps required for file generation. For more information how does it work you can see papers/presentation/videos about reverse engineering kernelcache and iOS. The script was written for IDA Pro and works with kernelcache without PAC/tagged pointers. Also, it is worth mentioning iokit-dumper-arm64.</description>
+      <description>In the begin On the week i have got email with request how to generate the file iokit.csv. This file used by dendrogram.
+The article contains steps required for file generation. For more information how does it work you can see papers/presentation/videos about reverse engineering kernelcache and iOS. The script was written for IDA Pro and works with kernelcache without PAC/tagged pointers. Also, it is worth mentioning iokit-dumper-arm64. According to the description, the result is the same, but the methods of obtaining data are different.</description>
     </item>
     
     <item>

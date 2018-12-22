@@ -3,6 +3,11 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>http://slashd.ga/2018/12/generation-of-iokits-classes-hierarchy/</loc>
+    <lastmod>2018-12-22T18:36:21+03:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://slashd.ga/2018/08/why-shellcode-doesnt-work-on-busybox/</loc>
     <lastmod>2018-08-06T22:22:10+03:00</lastmod>
   </url>
@@ -19,7 +24,7 @@
   
   <url>
     <loc>http://slashd.ga/blog/</loc>
-    <lastmod>2018-08-06T22:22:10+03:00</lastmod>
+    <lastmod>2018-12-22T18:36:21+03:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -35,7 +40,7 @@
   
   <url>
     <loc>http://slashd.ga/</loc>
-    <lastmod>2018-08-06T22:22:10+03:00</lastmod>
+    <lastmod>2018-12-22T18:36:21+03:00</lastmod>
     <priority>0</priority>
   </url>
   

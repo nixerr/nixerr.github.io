@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="generator" content="Hugo 0.27.1" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="//fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/rainbow.min.css">
+<link rel="stylesheet" href="/css/normalize.css">
+<link rel="stylesheet" href="/css/skeleton.css">
+<link rel="stylesheet" href="/css/custom.css">
+<link rel="alternate" href="/index.xml" type="application/rss+xml" title="slashd.ga">
+<title>Generation of IOKit&#39;s Classes Hierarchy - slashd.ga</title>
+</head>
+<body>
+
+<div class="container">
+
+	<header role="banner">
+		<div class="header-logo">
+			<a href="/"><img src="/images/logo.png" width="60" height="60" alt="slashd.ga"></a>
+		</div>
+		
+	</header>
+
+
+	<main role="main">
+	<article itemscope itemtype="http://schema.org/BlogPosting"> 
+			<h1 class="entry-title" itemprop="headline">Generation of IOKit&#39;s Classes Hierarchy</h1>
+			<span class="entry-meta"><time itemprop="datePublished" datetime="2018-12-22">December 22, 2018</time></span>
+			
+
+<h2 id="generation-of-iokit-s-classes-hierarchy">Generation of IOKit&rsquo;s classes hierarchy</h2>
+
+<p>On the week i have got email with request how to generate the file <a href="https://github.com/nixerr/nixerr.github.io/blob/master/static/iPhoneX_11.2.6_iokit_classes/iokit.csv">iokit.csv</a>. This file used by <a href="https://slashd.ga/static/iPhoneX_11.2.6_iokit_classes/">dendrogram</a>.</p>
+
+<h3 id="in-the-begin">In the begin</h3>
+
+<p>The article contains steps required for file generation. For more information how does it work you can see papers/presentation/videos about reverse engineering kernelcache and iOS. The script was written for IDA Pro and works with kernelcache <strong>without</strong> <a href="https://bazad.github.io/2018/06/ios-12-kernelcache-tagged-pointers/">PAC/tagged pointers</a>. Also, it is worth mentioning <a href="https://github.com/jndok/iokit-dumper-arm64">iokit-dumper-arm64</a>. According to the description, the result is the same, but the methods of obtaining data are different. My script is used to automatically restore vtable/class structure. The generation of class inheritance isn&rsquo;t main function.</p>
+
+<h3 id="instruments">Instruments</h3>
+
+<p>For file generation you should have:
+* IDA Pro
+* <a href="https://www.unicorn-engine.org/">Unicorn engine</a>
+* Plugin for IDA Pro - <a href="https://github.com/nixerr/idaemu">idaemu</a>
+you have to copy <code>idaemu.py</code> to <code>%IDAPro%/plugins</code>
+* 2 scripts from <a href="https://github.com/nixerr/ida_scripts">nixerr/ida_scripts</a> for IDA Pro
+  - <code>rename_got.py</code>
+  - <code>reconstruct_iokit_classes.py</code>
+* Script for convertation output data to csv
+  - <code>parse_to_csv.py</code>
+* HTML-template for dendrogram in directory
+  - <code>d3_dentogramm</code></p>
+
+<h5 id="rename-got-py"><code>rename_got.py</code></h5>
+
+<p>Rename functions in each &ldquo;*.got&rdquo; driver-section in kernelcache. The script should run first.</p>
+
+<h5 id="reconstruct-iokit-classes-py"><code>reconstruct_iokit_classes.py</code></h5>
+
+<p>Quite a bit difficult (in simple view):
+ 1. Looking for each <code>*.__mod_init_func</code> driver-section get addresses of init-function.
+ 2. Emulate init-function by unicorn engine for getting values of parameters in call <code>OSMetaClass::OSMetaClass</code> and address of <code>meta-vtable</code>.
+ 3. Take address of the alloc-function from <code>meta-vtable</code> (step 2). Emulate the <code>alloc-function</code> and save adddress of the <code>object-vtable</code>.
+ 4. Create structures of class and <code>object-vtable</code>.</p>
+
+<h3 id="example">Example</h3>
+
+<p>You can download iOS firmware from <a href="http://ipsw.me">ipsw.me</a>. Next, unpack the firmware and then unpack kernelcache.
+1. Open <code>kernelcache</code> in IDA Pro and wait when analysing will end.
+2. Run <code>rename_got.py</code>
+<code>File-&gt;Script file (Alt+F7)</code> and choose <code>rename_got.py</code>
+3. Run <code>reconstruct_iokit_classes.py</code>
+<code>File-&gt;Script file (Alt+F7)</code> and choose <code>reconstruct_iokit_classes.py</code>. Wait. The script will work some time.
+4. In the directory where IDA Pro contains database file (*.i64) will create file <code>classes_iphone.txt</code>.
+5. You should delete dublicates in file by run command:
+<code>cat classes_iphone.txt | sort -u  &gt; classes_X_11.4.txt</code>
+If you didn&rsquo;t do that, you can have problems with HTML-template.
+6. Convert file <code>classes_X_11.4.txt</code> to CSV-format by run script <code>parse_to_csv.py</code>:
+<code>python parse_to_csv.py -in  classes_X_11.4.txt -out d3_dentogramm/iokit.csv</code>
+7. Go to the directory <code>d3_dentogramm</code> and run web-server:
+<code>cd  d3_dentogramm &amp;&amp; python -m SimpleHTTPServer</code>
+8. Open the page in browser <code>http://localhost:8000/</code></p>
+
+<p>Congratulations! Now you have dendrogram of <code>IOKit</code>&rsquo;s classes hierarchy.</p>
+
+	</article>
+	</main>
+
+
+	<footer role="contentinfo">
+		<div class="hr"></div>
+		<div class="footer-container">
+			<div class="copyright">Valentin Shilnenkov</div>
+			<div class="footer-link">
+				
+				  <a href="mailto:need.coffee@yandex.ru"><img class="icon" src="/images/email.svg"/ alt="email"></a>
+				
+				
+				
+				
+				  <a href="https://github.com/nixerr/" target="_blank"><img class="icon" src="/images/github.svg"/></a>
+				
+				
+			</div>
+		</div>
+	</footer>
+
+</div>
+
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/cmake.min.js" defer></script>
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/javascript.min.js" defer></script>
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js" defer></script>
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/cpp.min.js" defer></script>
+  
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+</html>
+

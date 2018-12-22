@@ -7,10 +7,20 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>ru</language>
     <copyright>Valentin Shilnenkov</copyright>
-    <lastBuildDate>Mon, 06 Aug 2018 22:22:10 +0300</lastBuildDate>
+    <lastBuildDate>Sat, 22 Dec 2018 18:36:21 +0300</lastBuildDate>
     
 	<atom:link href="http://slashd.ga/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Generation of IOKit&#39;s Classes Hierarchy</title>
+      <link>http://slashd.ga/2018/12/generation-of-iokits-classes-hierarchy/</link>
+      <pubDate>Sat, 22 Dec 2018 18:36:21 +0300</pubDate>
+      
+      <guid>http://slashd.ga/2018/12/generation-of-iokits-classes-hierarchy/</guid>
+      <description>Generation of IOKit&amp;rsquo;s classes hierarchy On the week i have got email with request how to generate the file iokit.csv. This file used by dendrogram.
+In the begin The article contains steps required for file generation. For more information how does it work you can see papers/presentation/videos about reverse engineering kernelcache and iOS. The script was written for IDA Pro and works with kernelcache without PAC/tagged pointers. Also, it is worth mentioning iokit-dumper-arm64.</description>
+    </item>
     
     <item>
       <title>Why Shellcode Doesn&#39;t Work on BusyBox</title>

@@ -7,10 +7,20 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>ru</language>
     <copyright>Valentin Shilnenkov</copyright>
-    <lastBuildDate>Sat, 22 Dec 2018 18:36:21 +0300</lastBuildDate>
+    <lastBuildDate>Wed, 25 Mar 2020 14:00:42 +0300</lastBuildDate>
     
 	<atom:link href="http://slashd.ga/blog/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Draytek Vulnerabilities</title>
+      <link>http://slashd.ga/2020/03/draytek-vulnerabilities/</link>
+      <pubDate>Wed, 25 Mar 2020 14:00:42 +0300</pubDate>
+      
+      <guid>http://slashd.ga/2020/03/draytek-vulnerabilities/</guid>
+      <description>DrayTek Vigor 3900/2960/300B Vulnerabilities I have found six vulnerabilities in DrayTek routers in the end of 2019 year. In this post I&amp;rsquo;ll describe all of them.
+Which numbers were assigned  CVE-2020-10823 Stack-based buffer overflow in /cgi-bin/activate.cgi through var variable. The vulnerability allows to execute code by remote unauthorized attacker. CVE-2020-10824 Stack-based buffer overflow in /cgi-bin/activate.cgi through ticket variable. The vulnerability allows to execute code by remote unauthorized attacker. CVE-2020-10825 Stack-based buffer overflow in /cgi-bin/activate.</description>
+    </item>
     
     <item>
       <title>Generation of IOKit&#39;s Classes Hierarchy</title>

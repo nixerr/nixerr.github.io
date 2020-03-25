@@ -93,9 +93,9 @@ $ curl -d &quot;ticket=`perl -e 'print &quot;A&quot; x 0x1000'`&amp;var=1&amp;ma
 
 <p><code>/cgi-bin/activate.cgi</code> has unathorized stack buffer overflow while does base64_decode operation at <code>ticket</code> parameter.
 Vulnerable function is <code>sub_F274</code> (<code>base64_decode</code>). <code>sub_F274</code> takes 3 parameters:
- 1. Input base64 string (<code>ticket</code>)
- 2. Input base64 string length
- 3. Pointer to the output buffer.</p>
+1 Input base64 string (<code>ticket</code>).
+2 Input base64 string length.
+3 Pointer to the output buffer.</p>
 
 <p>Caller function sets 3rd paramter as static stack buffer with size 0x200 (Figure 3).</p>
 
@@ -270,10 +270,10 @@ if __name__ == '__main__':
 
 <p><code>apmd</code> and <code>cvmd</code> have very similar vulnerability, because use same code-base. <code>apmd</code> and <code>cvmd</code> are simple web servers and have auth through Authorization Digest method. For triggering Authorization need to make query to the <code>/ACSServer/services/ACSServlet</code>. Stack-based buffer overflows occur while handles <code>Authorization</code> header in function at <code>sub_11FB8</code> (<code>cvmd</code> at Vigor 3900 1.4.4).
 Function <code>sub_11FB8</code> has 4 input parameters:
- 1. Which key need extract from Authorization header (char *)
- 2. Authorization header value.
- 3. Output buffer.
- 4. Outbut buffer length.</p>
+1 Which key need extract from Authorization header (char *)
+* Authorization header value.
+* Output buffer.
+* Outbut buffer length.</p>
 
 <p>Also, <code>sub_11FB8</code> has temp stack buffer size char[0x64] for value. If function has found value, the value copied to the temp stack buffer in 2 different pathes:</p>
 

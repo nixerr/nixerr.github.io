@@ -36,7 +36,7 @@
 
 <p>I have found six vulnerabilities in DrayTek routers in the end of 2019 year. In this post I&rsquo;ll describe all of them.</p>
 
-<h2 id="which-numbers-were-assigned">Which numbers were assigned</h2>
+<h1 id="which-numbers-were-assigned">Which numbers were assigned</h1>
 
 <ul>
 <li><strong>CVE-2020-10823</strong>
@@ -53,9 +53,9 @@ Stack-based buffer overflow in <code>apmd</code> service. The vulnerability allo
 Stack-based buffer overflow in <code>cvmd</code> service. The vulnerability allows to execute remote code by unauthorized attacker.</li>
 </ul>
 
-<h2 id="analyse-vulnerabilities">Analyse vulnerabilities</h2>
+<h1 id="analyse-vulnerabilities">Analyse vulnerabilities</h1>
 
-<h3 id="cve-2020-10823-and-cve-2020-10824">CVE-2020-10823 and CVE-2020-10824</h3>
+<h2 id="cve-2020-10823-and-cve-2020-10824">CVE-2020-10823 and CVE-2020-10824</h2>
 
 <p>There are two vulnerabilities quite similar. <code>/cgi-bin/activate.cgi</code> accepts four parameters: <code>action</code>, <code>var</code>, <code>ticket</code> and <code>mac</code> (Figure 1).</p>
 
@@ -85,7 +85,7 @@ memcpy(static_buf_ticket, param_ticket, param_ticket_len);
 $ curl -d &quot;ticket=`perl -e 'print &quot;A&quot; x 0x1000'`&amp;var=1&amp;mac=001122334455&quot; -X POST http://192.168.0.250/cgi-bin/activate.cgi
 </code></pre>
 
-<h3 id="cve-2020-10825">CVE-2020-10825</h3>
+<h2 id="cve-2020-10825">CVE-2020-10825</h2>
 
 <p><code>/cgi-bin/activate.cgi</code> has unathorized stack buffer overflow while does base64_decode operation at <code>ticket</code> parameter.
 Vulnerable function is <code>sub_F274</code> (<code>base64_decode</code>). <code>sub_F274</code> takes 3 parameters:
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     main('192.168.0.250', 8888)
 </code></pre>
 
-<h3 id="cve-2020-10826">CVE-2020-10826</h3>
+<h2 id="cve-2020-10826">CVE-2020-10826</h2>
 
 <p><code>/cgi-bin/activate.cgi</code> has unathorized command injection in <code>DEBUG</code> mode. For activating <code>DEBUG</code> mode need to execute command:</p>
 
@@ -262,7 +262,7 @@ if __name__ == '__main__':
     main()
 </code></pre>
 
-<h3 id="cve-2020-10827-and-cve-2020-10828">CVE-2020-10827 and CVE-2020-10828</h3>
+<h2 id="cve-2020-10827-and-cve-2020-10828">CVE-2020-10827 and CVE-2020-10828</h2>
 
 <p><code>apmd</code> and <code>cvmd</code> have very similar vulnerability, because use same code-base. <code>apmd</code> and <code>cvmd</code> are simple web servers and have auth through Authorization Digest method. For triggering Authorization need to make query to the <code>/ACSServer/services/ACSServlet</code>. Stack-based buffer overflows occur while handles <code>Authorization</code> header in function at <code>sub_11FB8</code> (<code>cvmd</code> at Vigor 3900 1.4.4).
 Function <code>sub_11FB8</code> has 4 input parameters:

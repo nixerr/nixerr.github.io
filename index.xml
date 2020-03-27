@@ -2,60 +2,60 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>slashd.ga</title>
-    <link>http://slashd.ga/</link>
+    <link>https://slashd.ga/</link>
     <description>Recent content on slashd.ga</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>ru</language>
+    <language>ru,en</language>
     <copyright>Valentin Shilnenkov</copyright>
     <lastBuildDate>Wed, 25 Mar 2020 14:00:42 +0300</lastBuildDate>
     
-	<atom:link href="http://slashd.ga/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://slashd.ga/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Draytek Vulnerabilities</title>
-      <link>http://slashd.ga/2020/03/draytek-vulnerabilities/</link>
+      <link>https://slashd.ga/2020/03/draytek-vulnerabilities/</link>
       <pubDate>Wed, 25 Mar 2020 14:00:42 +0300</pubDate>
       
-      <guid>http://slashd.ga/2020/03/draytek-vulnerabilities/</guid>
+      <guid>https://slashd.ga/2020/03/draytek-vulnerabilities/</guid>
       <description>DrayTek Vigor 3900/2960/300B Vulnerabilities I have found six vulnerabilities in DrayTek routers in the end of 2019 year. In this post I&amp;rsquo;ll describe all of them.
 Which numbers were assigned  CVE-2020-10823 Stack-based buffer overflow in /cgi-bin/activate.cgi through var variable. The vulnerability allows to execute code by remote unauthorized attacker. Affected products: Vigor3900 before 1.5.1, Vigor2960 before 1.5.1, Vigor300B before 1.5.1 CVE-2020-10824 Stack-based buffer overflow in /cgi-bin/activate.cgi through ticket variable.</description>
     </item>
     
     <item>
       <title>Generation of IOKit&#39;s Classes Hierarchy</title>
-      <link>http://slashd.ga/2018/12/generation-of-iokits-classes-hierarchy/</link>
+      <link>https://slashd.ga/2018/12/generation-of-iokits-classes-hierarchy/</link>
       <pubDate>Sat, 22 Dec 2018 18:36:21 +0300</pubDate>
       
-      <guid>http://slashd.ga/2018/12/generation-of-iokits-classes-hierarchy/</guid>
+      <guid>https://slashd.ga/2018/12/generation-of-iokits-classes-hierarchy/</guid>
       <description>In the begin On the week i have got email with request how to generate the file iokit.csv. This file used by dendrogram.
 The article contains steps required for file generation. For more information how does it work you can see papers/presentation/videos about reverse engineering kernelcache and iOS. The script was written for IDA Pro and works with kernelcache without PAC/tagged pointers. Also, it is worth mentioning iokit-dumper-arm64. According to the description, the result is the same, but the methods of obtaining data are different.</description>
     </item>
     
     <item>
       <title>Why Shellcode Doesn&#39;t Work on BusyBox</title>
-      <link>http://slashd.ga/2018/08/why-shellcode-doesnt-work-on-busybox/</link>
+      <link>https://slashd.ga/2018/08/why-shellcode-doesnt-work-on-busybox/</link>
       <pubDate>Mon, 06 Aug 2018 22:22:10 +0300</pubDate>
       
-      <guid>http://slashd.ga/2018/08/why-shellcode-doesnt-work-on-busybox/</guid>
+      <guid>https://slashd.ga/2018/08/why-shellcode-doesnt-work-on-busybox/</guid>
       <description>Why shellcode doesn&amp;rsquo;t work on busybox Is bad shellcode? I had a problem when was testing back-connect shellcode for ARM platform. I took shellcode from Azeria Lab and he didn&amp;rsquo;t work correctly. I had back-connect, but without any command execution. I was testing shellcode on Linux with BusyBox. Simply, /bin/sh is the link to /bin/busybox. So when I execute /bin/sh, instead starting /bin/busybox and determine which utily i run and execute it.</description>
     </item>
     
     <item>
       <title>IPhoneX 11.2.6 IOKit Inheritance</title>
-      <link>http://slashd.ga/2018/03/iphonex-11.2.6-iokit-inheritance/</link>
+      <link>https://slashd.ga/2018/03/iphonex-11.2.6-iokit-inheritance/</link>
       <pubDate>Wed, 14 Mar 2018 00:27:31 +0300</pubDate>
       
-      <guid>http://slashd.ga/2018/03/iphonex-11.2.6-iokit-inheritance/</guid>
+      <guid>https://slashd.ga/2018/03/iphonex-11.2.6-iokit-inheritance/</guid>
       <description>Наследование классов в IOKit Дендрограмма наследования классов для iPhoneX для версии iOS 11.2.6.</description>
     </item>
     
     <item>
       <title>Code Coverage</title>
-      <link>http://slashd.ga/2017/09/code-coverage/</link>
+      <link>https://slashd.ga/2017/09/code-coverage/</link>
       <pubDate>Sat, 23 Sep 2017 11:28:11 +0300</pubDate>
       
-      <guid>http://slashd.ga/2017/09/code-coverage/</guid>
+      <guid>https://slashd.ga/2017/09/code-coverage/</guid>
       <description>Введение Code coverage, или покрытие кода, это мера, используемая при тестировании программного обеспечения. Она показывает процент, насколько исходный код программы был протестирован (wikipedia). Code coverage удобно использовать как вспомогательный инструмент, чтобы понять какой код в данном случае исполнятеся. Для примера можно привести различные JavaScript-движки: JSC, ChakraCore, V8. В этой статье будут показаны примеры сборки JSC и ChakraCore с опцией покрытия кода и получения статистики с использованием компилятора clang.
 Общие вопросы Сборка проекта Опции отвечающая за компиляцию проекта с покрытием кода:</description>
     </item>
